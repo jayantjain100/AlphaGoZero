@@ -1,0 +1,5 @@
+notes.txt
+
+
+1. later add where empty to the stack of planes
+2. 

@@ -38,7 +38,7 @@ while True:
 	new_network = current_network.copy() #copy function for the NNET module
 	new_network.train(buff)
 
-	win_percentage = Environment.compete(current_network, new_network)
+	win_percentage = Environment.compete(new_network, current_network)
 
 	if win_percentage >= 0.55:
 		current_network = new_network
