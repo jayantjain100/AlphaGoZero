@@ -8,8 +8,10 @@ from neural_net import NNET
 from go_game import *
 import experience
 import copy
+import numpy as np
 #module to train a new neural net
-NUM_GAMES_PER_ITERATION = 25000
+# NUM_GAMES_PER_ITERATION = 25000
+NUM_GAMES_PER_ITERATION = 2
 
 
 current_network = NNET()

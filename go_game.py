@@ -5,13 +5,14 @@ import mcts
 import sys
 import os
 sys.path.append(os.path.abspath("../alphago_zero_sim"))
+import copy
 
 import goSim
 
 BOARD_DIMS = (13, 13)
 KOMI = 7.5
 ACTIONS = BOARD_DIMS[0]*BOARD_DIMS[1] + 2 #pass, board0*board1 is pass, ans board0*board1 + 1 is resign
-NUM_GAMES_COMPETITION = 400
+NUM_GAMES_COMPETITION = 5
 HISTORY = 2
 
 class Environment():
@@ -59,7 +60,7 @@ class Environment():
 
 	def restart_and_simulate_till(self, list_actions):
 		self.reset()
-		print (list_actions, self.current_color)
+		# print (list_actions, self.current_color)
 		for a in list_actions:
 			self.board, _, _ = self.step(a)
 
@@ -142,9 +143,9 @@ def sample(prob_dist):
 def normalise_and_sample(visit_counts, temperature = 1):
 	s = sum(visit_counts.values())
 	if temperature == 1:
-		prob_dist =  {float(visit_counts[a])/s for a in visit_counts}
+		prob_dist =  {a:float(visit_counts[a])/s for a in visit_counts}
 	else:
-		chosen_action = max(f, key=d.get)
+		chosen_action = max(visit_counts, key=visit_counts.get)
 		prob_dist = {chosen_action : 1} #POTI , epsilon greedy
 
 	a = sample(prob_dist)
@@ -165,13 +166,13 @@ def play_single_for_training(network):
 	temperature = 1
 	moves_till_now = []
 	while(not done):
-		print ("Num moves", num_moves)
+		# print ("Num moves", num_moves)
 		num_moves += 1
 		if num_moves == 30: #could be changed acc to board size , POTI
 			temperature = 0
-		print ("MCTS started")
+		# print ("MCTS started")
 		visit_counts = tree.mcts(network, game) #temperature??, #num_simulations
-		print ("MCTS ended")
+		# print ("MCTS ended")
 		game.restart_and_simulate_till(moves_till_now)
 		a, pi = normalise_and_sample(visit_counts, temperature) #pi is a dictionary
 		# a = sample(visit_counts, temperature) #based on number of moves sets temp to 0 or 1 and chooses a move
@@ -200,7 +201,7 @@ def play_single_for_training(network):
 	z = r
 	l = len(data) - 1
 	# if black:
-	data = [(a,b, z*((-1)**(l-i))) for (a,b), i in enumerate(data)] #POTE
+	data = [(a,b, z*((-1)**(l-i))) for i,(a,b) in enumerate(data)] #POTE
 	# else:
 		# data = [(a,b, z*((-1)**(l-i+1))) for (a,b), i in enumerate(data)]
 

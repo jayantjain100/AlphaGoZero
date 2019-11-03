@@ -8,7 +8,7 @@ HISTORY = 2
 
 #same board could have multiple parents - think ply4 ?? permutations of same moves #POTI
 BOARD_SIZE = 13
-SIMULATIONS = 1600
+SIMULATIONS = 2
 C_PUCT = 1 #PENDING ??
 
 class MonteCarloTreeNode():
@@ -45,7 +45,7 @@ class MonteCarloTreeNode():
 			rooted_count = node_count**0.5
 			u = {a:((C_PUCT*self.prior[a]*rooted_count)/(1+self.visit_count[a])) for a in self.legal}
 			f = {a:(u[a] + self.q[a]) for a in self.legal}
-			print (self.legal)
+			# print (self.legal)
 			chosen_action = max(f, key=f.get)
 
 			child = self.children[chosen_action]
@@ -76,7 +76,7 @@ class MonteCarloTreeNode():
 			self.board = env.restart_and_simulate_till(self.actions_till_now) 
 			if (env.ended):
 				self.leaf = True
-				print('dummy escape')
+				# print('dummy escape')
 				# sys.exit(0)
 				return env.outcome
 			self.legal = env.fetch_legal(self.black)
@@ -118,7 +118,7 @@ class MonteCarloTreeNode():
 
 	def mcts(self, network, env, simulations = SIMULATIONS):
 		for simnum in range(simulations):
-			print ("simulation number", simnum)
+			# print ("simulation number", simnum)
 			chosen = self.search()
 			v = chosen.expand(network, env)
 			chosen.propagate_back(v)

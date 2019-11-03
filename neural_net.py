@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import random
+import numpy as np
 
 TRAINING_STEPS_PER_ITERATION = 1000
 HISTORY = 2
@@ -27,11 +28,11 @@ class NNET(nn.Module):
 	def stack(data, num):
 		states, pi, z = data
 		if (num % 2 == 0):
-			C = np.ones((BOARD_SIZE,BOARD_SIZE))
+			C = np.ones((1,BOARD_SIZE,BOARD_SIZE))
 		else:
-			C = np.zeros((BOARD_SIZE,BOARD_SIZE))
+			C = np.zeros((1,BOARD_SIZE,BOARD_SIZE))
 		states.append(C)
-		return (np.stack(states,axis = 0), pi, z)
+		return (np.concatenate(states,axis = 0), pi, z)
 	# def preprocess(data):
 	# 	for da
 	# 	#list of  ([s0, s1, ...], pi, z)
