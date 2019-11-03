@@ -13,16 +13,13 @@ class MonteCarloTreeNode():
 	def sample(dist, temp):
 		pass
 
-	def __init__(self, parent, black, act = -1, a_till_now):
-		self.board = None
+	def __init__(self, parent, board, black, act = -1):
+		self.board = board
 		self.parent = parent
 		self.legal = [] #POTI, remove faltu vars
 		self.children = {} #action indexed
 		self.leaf = True
-		if act is None:
-			self.actions_till_now = copy.deepcopy(a_till_now)
-		else:
-			self.actions_till_now = copy.deepcopy(a_till_now.append(a))
+
 		self.prior = [] #P(s,a)
 		self.visit_count = {} #N(s,a)
 		self.w = {} #action indexed #W(s,a) 
@@ -58,20 +55,19 @@ class MonteCarloTreeNode():
 
 		return lis.reverse()
 
-	def expand(self, network, env):
+	def expand(self, network):
 		#run this on the found leaf
 		if not self.leaf:
 			raise Exception("NOT A LEAF")
 		else:
 			#keep on sampling
 			self.leaf = False
-			self.board = env.restart_and_simulate_till(self.actions_till_now) 
-			self.legal = env.fetch_legal_2(self.black)
+			self.legal = go_game.fetch_legal_2(self.board, self.black)
 			if self.legal == []:
 				raise Exception("Empty")
 
 			# next_board = copy(env).step(a)[0] aisa kuch ayega next line mei
-			self.children = {a:MonteCarloTreeNode(self, not self.black, a , self.actions_till_now) for a in self.legal} #PENDING
+			self.children = {a:MonteCarloTreeNode(self, next_board, not self.black, a ) for a in self.legal} #PENDING
 			self.visit_count = {a:0 for a in self.legal} 
 			self.w = {a:0 for a in self.legal}
 			self.q = {a: (0) for a in self.legal} 
@@ -98,10 +94,10 @@ class MonteCarloTreeNode():
 			# par.val_children = update here #PENDING
 			current = par
 
-	def mcts(self, network, env, simulations = SIMULATIONS):
+	def mcts(self, network, simulations = SIMULATIONS):
 		for _ in range(simulations):
 			chosen = self.search()
-			v = chosen.expand(network, env)
+			v = chosen.expand(network)
 			chosen.propagate_back(v)
 
 
