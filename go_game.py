@@ -32,7 +32,7 @@ class Environment():
 		# self.board = np.zeros(BOARD_DIMS)#or lovishs func??
 		#maybe just instantiate lovishs class here and set your own vars in accordance
 
-	def step(self, a):
+	def step(self, a, show = False):
 		#POTI - printing current score
 		self.inner_env.set_player_color(self.current_color)
 		self.current_color = 3 - self.current_color
@@ -40,6 +40,8 @@ class Environment():
 		self.board = board[:2]
 		self.ended = done
 		self.outcome = r
+		if show:
+			print (info)
 		return self.board, r, done
 		# a is a single dimensional number 	break into dim1 and dim2 using BOARD_DIMS[0] and BOARD_DIMS[1]
 		# returns board, 
@@ -181,8 +183,8 @@ def play_single_for_training(network):
 		for k in pi:
 			true_pi[k] = pi[k]
 
-
-		s_dash, r , done = game.step(a)
+		print ("Move no", len(moves_till_now))
+		s_dash, r , done = game.step(a, True)
 		# r , s_dash, done = game.step(a)
 		
 		#update history
