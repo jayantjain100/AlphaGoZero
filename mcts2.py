@@ -3,30 +3,21 @@
 import go_game
 import copy
 import numpy as np
+from global_constants import *
 # import ipdb
-HISTORY = 2
-#PENDING, POTI - rotations before passing to nnet, exploiting symmetry of the game
-#PENDING - v_resign??
-
-#same board could have multiple parents - think ply4 ?? permutations of same moves #POTI
-# BOARD_SIZE = 13
-BOARD_SIZE = 5
-# BOARD_SIZE = 3
-# SIMULATIONS = 160
-SIMULATIONS = 100
-C_PUCT = 1 #PENDING ??
 
 class MonteCarloTreeNode():
 
 	def sample(dist, temp):
 		pass
 
-	def __init__(self, parent, black, act, env):
+	def __init__(self, parent, black, act, env, depth = 0):
 		self.board = None
 		self.parent = parent
 		self.legal = None #POTI, remove faltu vars
 		self.children = {} #action indexed
 		self.leaf = True
+		self.depth = depth
 		# self.actions_till_now = a_till_now
 		# if act is None:
 		# 	self.actions_till_now = copy.deepcopy(a_till_now)
@@ -44,6 +35,9 @@ class MonteCarloTreeNode():
 		self.a_to_reach_here = act
 
 	def search(self):
+		# print (self.depth)
+		# if (self.depth > 500):
+		# 	print ("FUCK YOU JAYANT")
 		if self.leaf:
 			return self
 		else:
@@ -89,6 +83,11 @@ class MonteCarloTreeNode():
 				# print('dummy escape')
 				# sys.exit(0)
 				return self.env.outcome
+
+			if (self.depth >= 2*MOVE_CAP):
+				self.leaf = True
+				return 0
+
 			self.legal = self.env.fetch_legal(self.black)
 			if self.legal == []:
 				raise Exception("Empty")
@@ -98,7 +97,7 @@ class MonteCarloTreeNode():
 			# 	new_env = self.env.copy()
 			# 	new_env.step(a)
 			# 	self.children[a] = MonteCarloTreeNode(self, not self.black, a , self.actions_till_now, env = new_env)	
-			self.children = {a:MonteCarloTreeNode(self, not self.black, a, env =self.env ) for a in self.legal} 
+			self.children = {a:MonteCarloTreeNode(self, not self.black, a, env =self.env, depth = self.depth + 1 ) for a in self.legal} 
 			self.visit_count = {a:0 for a in self.legal} 
 			self.w = {a:0 for a in self.legal}
 			self.q = {a: (0) for a in self.legal} 

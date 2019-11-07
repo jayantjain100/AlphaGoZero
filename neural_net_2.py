@@ -3,19 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import random
 import numpy as np
-
-# TRAINING_STEPS_PER_ITERATION = 1000
-TRAINING_STEPS_PER_ITERATION = 100
-HISTORY = 2
-# BOARD_SIZE = 13
-BOARD_SIZE = 5
-# NUMBER_OF_FILTERS = 32
-NUMBER_OF_FILTERS = 8
-# NUMBER_OF_RESIDUAL_BLOCKS = 9
-NUMBER_OF_RESIDUAL_BLOCKS = 2
-VALUE_HIDDEN = 256
-# BATCH_SIZE = 2048
-BATCH_SIZE = 32
+from global_constants import *
 
 class ResidualBlock(nn.Module):
 	def __init__(self):
@@ -41,7 +29,7 @@ class PolicyHead(nn.Module):
 	def forward(self, x):
 		hl1 = F.relu(self.bn(self.conv(x)))
 		hl1 = hl1.view(-1,2*(BOARD_SIZE - 2)*(BOARD_SIZE - 2))
-		return self.fc(hl1)
+		return F.softmax(self.fc(hl1), dim = -1)
 
 class ValueHead(nn.Module):
 	def __init__(self):
@@ -81,7 +69,7 @@ class Net(nn.Module):
 			for i in range(NUMBER_OF_RESIDUAL_BLOCKS):
 				hl1 = self.res_blocks[i].forward(hl1)
 			p,v = self.policy_head.forward(hl1), self.value_head.forward(hl1)
-			p = p[0].detach().numpy()
+			p = p[0].cpu().numpy()
 			v = v.item()
 			return p,v
 class NNET():
@@ -113,15 +101,19 @@ class NNET():
 		MSELoss = torch.nn.MSELoss()
 		optimizer = torch.optim.SGD(net.parameters(), lr = 0.01, momentum = 0.9, weight_decay = 10**-4)
 
-		for epoch_num in range(num_epochs):
+		for epoch_num in range(steps):
 			optimizer.zero_grad()
 			states, pis, zs = buff.sample(BATCH_SIZE)
 			states, pis, zs = torch.Tensor(states), torch.Tensor(pis), torch.Tensor(zs)
 			p, v = net(states)
-			loss = - torch.sum(torch.mul(pis,p)) + MSELoss(zs,v)
+			loss1 = - torch.sum(torch.mul(pis,torch.log(p)))
+			loss2 = MSELoss(zs,v)
+			loss = loss1 + loss2
+			print ("Epoch number: {} Policy Loss {} Value Loss {}".format(epoch_num, loss1, loss2))
 			loss.backward()
 			optimizer.step()
 		#pick minibatches of size 2048 from data and 
+
 
 		#train for num of steps
 

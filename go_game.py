@@ -8,17 +8,8 @@ import os
 sys.path.append(os.path.abspath("../alphago_zero_sim"))
 import copy
 import goSim
-# import ipdb
-
-# BOARD_DIMS = (13, 13)
-BOARD_DIMS = (5, 5)
-# BOARD_DIMS = (3, 3)
-KOMI = 7.5
-ACTIONS = BOARD_DIMS[0]*BOARD_DIMS[1] + 2 #pass, board0*board1 is pass, ans board0*board1 + 1 is resign
-NUM_GAMES_COMPETITION = 50
-HISTORY = 2
-MOVE_CAP = int(1.5*169)
-# MOVE_CAP = int(450)
+import random
+from global_constants import *
 
 class Environment():
 	def reset(self):
@@ -45,7 +36,7 @@ class Environment():
 		#POTI - printing current score
 		self.inner_env.set_player_color(self.current_color)
 		self.current_color = 3 - self.current_color
-		board, r, done, info, _ = self.inner_env.step(a)
+		board, _, r, done, info, _ = self.inner_env.step(a)
 		self.board = board[:2]
 		self.ended = done
 		self.outcome = r
@@ -108,7 +99,7 @@ class Environment():
 		num_moves = 0
 		while(not done):
 			num_moves += 1
-			tree = trees[black]
+			# tree = trees[black]
 			network = players[black]
 			if black:
 				visit_counts = tree1.mcts(p1)
@@ -141,7 +132,7 @@ class Environment():
 			else:
 				tree1 = tree1.children[a]
 			# t = tree2
-			if a not in tree2.children[a]:
+			if a not in tree2.children:
 				tree2 = mcts.MonteCarloTreeNode(None, not tree2.black, a , env = game)
 			else:
 				tree2 = tree2.children[a]
@@ -156,6 +147,63 @@ class Environment():
 		# so that means white won
 		return not black
 
+	def play_single_match_2(p1, p2, show = False):
+		#returns 1True if p1 won 
+		game = Environment()
+
+		black = True
+		done = False
+		num_moves = 0
+		while(not done):
+			num_moves += 1
+
+			tree = mcts.MonteCarloTreeNode(None, black, None, env = game)
+			if black:
+				visit_counts = tree.mcts(p1)
+			else:
+				visit_counts = tree.mcts(p2)
+
+			a, _ = normalise_and_sample(visit_counts, 0)
+			_ , r , done = game.step(a, False)
+
+			if num_moves == MOVE_CAP:
+				done = True
+			black = not black
+
+		black = not black
+		if (black):
+			return r
+		else:
+			return -r
+
+	def play_single_match_with_random(p1,my_black):
+		game = Environment()
+
+		black = True
+		done = False
+		num_moves = 0
+		while(not done):
+			num_moves += 1
+			if (black == my_black):
+				tree = mcts.MonteCarloTreeNode(None, black, None, env = game)
+				visit_counts = tree.mcts(p1)
+				a, _ = normalise_and_sample(visit_counts, 0)
+				_ , r , done = game.step(a, False)
+				if num_moves == MOVE_CAP:
+					done = True
+			else:
+				a = random.choice(game.fetch_legal(black))
+				_ , r , done = game.step(a, False)
+				if num_moves == MOVE_CAP:
+					done = True
+			black = not black
+
+		black = not black
+		if (black):
+			return r
+		else:
+			return -r	
+
 	def compete(p1, p2, num_games = NUM_GAMES_COMPETITION, verbose = False):
 		#returns win percentage of p1
 		#p1 wins
@@ -167,23 +215,44 @@ class Environment():
 		#Assuming num_games is even
 
 		p1_wins = 0
+		p2_wins = 0
 		game = 0
 		for _ in range(int(num_games/2)):
 			game += 1
-			if (Environment.play_single_match(p1, p2)):
-				#p1 won
+			ret = Environment.play_single_match_2(p1, p2)
+			if (ret == 1):
 				p1_wins += 1
+			elif ret == -1:
+				p2_wins += 1
 			if verbose:
 				print('Games Played [%d%%]\r'%int((100*game)/NUM_GAMES_COMPETITION), end="")
 		for _ in range(int(num_games/2)):
 			game += 1
-			if (not Environment.play_single_match(p2, p1)):
+			ret = Environment.play_single_match_2(p2, p1)
+			if (ret == 1):
+				p2_wins += 1
+			elif ret == -1:
 				p1_wins += 1
 			if verbose:
 				print('Games Played [%d%%]\r'%int((100*game)/NUM_GAMES_COMPETITION), end="")
 		print()
-		return float(p1_wins) / float(num_games)
+		draws = (num_games - p1_wins - p2_wins)
+		print ("The number of draws is {} out of {}".format(draws,num_games))
+		return float(p1_wins + (draws*0.5)) / float(num_games)
 
+def compete_with_random(p1, num_games = NUM_GAMES_COMPETITION, verbose = False):
+	my_wins = 0
+	draws = 0
+	im_black = True
+	for i in range(num_games):
+		ret = Environment.play_single_match_with_random(p1, im_black)
+		if ((im_black and ret == 1) or (not im_black and ret == -1)):
+			my_wins += 1
+		elif (ret == 0):
+			draws += 1
+		im_black = not im_black
+	print ("The number of draws is {} out of {}".format(draws,num_games))		
+	return float(my_wins + (draws*0.5)) / float(num_games)
 
 def sample(prob_dist):
 	#prob_dist is a dictionary of keys with kiski kitni prob
@@ -232,7 +301,7 @@ def play_single_for_training(network, show = False):
 		# print ("Num moves", num_moves)
 		num_moves += 1
 		
-		if num_moves == 30: #could be changed acc to board size , POTI
+		if num_moves == TEMP_THRESHOLD_MOVES: #could be changed acc to board size , POTI
 			temperature = 0
 		# print ("MCTS started")
 		visit_counts = tree.mcts(network) #temperature??, #num_simulations
@@ -241,8 +310,8 @@ def play_single_for_training(network, show = False):
 		a, pi = normalise_and_sample(visit_counts, temperature) #pi is a dictionary
 		# a = sample(visit_counts, temperature) #based on number of moves sets temp to 0 or 1 and chooses a move
 		moves_till_now.append(a)
-		print(black, pi, game.fetch_legal(black))
-		print (tree.legal)
+		# print(black, pi, game.fetch_legal(black))
+		# print (tree.legal)
 		true_pi = [0 for _ in range(ACTIONS)] #list
 		for k in pi:
 			true_pi[k] = pi[k]

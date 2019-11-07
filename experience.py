@@ -1,9 +1,7 @@
 #implement a cyclic buffer
 import random
 import numpy as np
-BUFF_GAMES = 50
-AVG_GAME_LENGTH = 150
-BUFFER_SIZE = BUFF_GAMES * AVG_GAME_LENGTH
+from global_constants import *
 
 class Memory():
 	def __init__(self, size = BUFFER_SIZE):

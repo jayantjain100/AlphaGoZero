@@ -11,23 +11,25 @@ from go_game import *
 import experience
 import copy
 import numpy as np
-# import ipdb
-#module to train a new neural net
-# NUM_GAMES_PER_ITERATION = 25000
-NUM_GAMES_PER_ITERATION = 3
-
+from global_constants import *
 
 current_network = Net()
 buff = experience.Memory()
-
+iter_num = 0
 while True:
+	iter_num += 1
+	if iter_num % 50 == 0:
+		print("Competing against random bot")
+		res = compete_with_random(current_network, 50)
+		print("percentage wins are {}%".format(100*res))
+
 	#generate data from self play
 	data = []
 	print("self-play")
 	for game in range(NUM_GAMES_PER_ITERATION):
 		# print ("Game1")
 		print('Games Played [%d%%]\r'%int((100*(game+1))/NUM_GAMES_PER_ITERATION), end="")
-		game_data = play_single_for_training(current_network, show = True)
+		game_data = play_single_for_training(current_network, show = SHOW)
 		# print ("Game1 ended")
 		#game_data is a list of (states, pi, z ) where a single state is a list of boards, list size = HISTORY
 		#POTI - memory wastage
@@ -48,19 +50,24 @@ while True:
 	#handles overflow
 
 	#training
+	# for _ in range(50):
 	print("train")
 	# print('Games Played [%d%%]\r'%int((100*game)/NUM_GAMES_PER_ITERATION), end="")
 	# new_network = current_network.copy() #copy function for the NNET module
-	new_network = copy.deepcopy(current_network) #copy function for the NNET module
+	if (PIT):
+		new_network = copy.deepcopy(current_network) #copy function for the NNET module
 
-	# new_network.train(buff)
-	# train(buff)
-	NNET.train(new_network, buff)
-	# sys.exit()
-	win_percentage = Environment.compete(new_network, current_network, verbose = True)
-
-	if win_percentage >= 0.55:
-		current_network = new_network
+		# new_network.train(buff)
+		# train(buff)
+		NNET.train(new_network, buff)
+		# sys.exit()
+		print ("pit")
+		win_percentage = Environment.compete(new_network, current_network, verbose = SHOW)
+		print ("The win percentage is {}".format(win_percentage))
+		if win_percentage >= 0.55:
+			current_network = new_network
+	else:
+		NNET.train(current_network, buff)
 
 
 
