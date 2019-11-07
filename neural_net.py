@@ -3,12 +3,17 @@ import torch.nn as nn
 import torch.nn.functional as F
 import random
 import numpy as np
-
+import copy
 TRAINING_STEPS_PER_ITERATION = 1000
 HISTORY = 2
-BOARD_SIZE = 13
+# BOARD_SIZE = 13
+BOARD_SIZE = 5
+# BOARD_SIZE = 3
 
-class NNET(nn.Module):
+
+# class NNET(nn.Module):
+class NET(nn.Module):
+# class NNET():
 
 	def __init__(self):
 		pass
@@ -45,7 +50,8 @@ class NNET(nn.Module):
 		#train for num of steps
 
 	def copy(self):
-		pass
+		return copy.deepcopy(self)
+		# pass
 		#create another instance of this object
 		#deepcopy, there would be some pytorch command
 
@@ -54,6 +60,8 @@ class NNET(nn.Module):
 	def forward_pass(self, inp):
 		#inp is that bakwas 2*HISTORY + 1 jo chutiye ne diya hai
 		l = [random.random() for i in range(BOARD_SIZE*BOARD_SIZE + 2)]
+		l[BOARD_SIZE*BOARD_SIZE] = 0.001
+		l[BOARD_SIZE*BOARD_SIZE + 1] = 0.001 #REMOVE LATER PENDING POTE
 		# l[169] = 0
 		# l[170] = 0 #PENDING, why is resign giving probs, POTE
 		return l,random.random()
