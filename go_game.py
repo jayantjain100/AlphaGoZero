@@ -78,7 +78,7 @@ class Environment():
 		actions = []
 		empties = np.ones(BOARD_DIMS) - (self.board[0] + self.board[1])
 		tmp = np.stack([self.board[0],self.board[1], empties], 0)
-		for i in range(ACTIONS):
+		for i in range(ACTIONS-1):
 			if (self.inner_env.is_legal_action(tmp, i, 1 if player else 2)):
 				actions.append(i)
 		return actions
@@ -241,6 +241,8 @@ def play_single_for_training(network, show = False):
 		a, pi = normalise_and_sample(visit_counts, temperature) #pi is a dictionary
 		# a = sample(visit_counts, temperature) #based on number of moves sets temp to 0 or 1 and chooses a move
 		moves_till_now.append(a)
+		print(black, pi, game.fetch_legal(black))
+		print (tree.legal)
 		true_pi = [0 for _ in range(ACTIONS)] #list
 		for k in pi:
 			true_pi[k] = pi[k]

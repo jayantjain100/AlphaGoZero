@@ -27,7 +27,7 @@ while True:
 	for game in range(NUM_GAMES_PER_ITERATION):
 		# print ("Game1")
 		print('Games Played [%d%%]\r'%int((100*(game+1))/NUM_GAMES_PER_ITERATION), end="")
-		game_data = play_single_for_training(current_network, show = False)
+		game_data = play_single_for_training(current_network, show = True)
 		# print ("Game1 ended")
 		#game_data is a list of (states, pi, z ) where a single state is a list of boards, list size = HISTORY
 		#POTI - memory wastage
@@ -36,7 +36,8 @@ while True:
 		# sys1.exit()
 		data += game_data
 
-	print()
+	print ()
+	print("self-play over")
 	#data is a list of ([s0, s1, ..., s0+hiostory], pi, z)
 	#convert the list of [s0, s1] to proper binary form as expected by the neural net
 	#convert here because same data may be used by neural net multiplre times

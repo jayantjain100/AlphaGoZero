@@ -95,7 +95,7 @@ class MonteCarloTreeNode():
 				for_forward_pass.append(np.ones((1,BOARD_SIZE,BOARD_SIZE)))
 			else:
 				for_forward_pass.append(np.zeros((1,BOARD_SIZE,BOARD_SIZE)))
-			self.prior , self.v = network(np.concatenate(for_forward_pass, 0)) #PENDING
+			self.prior , self.v = network(torch.Tensor(np.concatenate(for_forward_pass, 0))) #PENDING
 			
 			#initial_val = ????
 			# self.val_children = {a:initial_val for a in self.legal}

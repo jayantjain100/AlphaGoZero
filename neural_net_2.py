@@ -59,7 +59,7 @@ class ValueHead(nn.Module):
 
 class Net(nn.Module):
 	def __init__(self):
-		super(NNET, self).__init__()
+		super(Net, self).__init__()
 		self.conv = nn.Conv2d(2*HISTORY+1, NUMBER_OF_FILTERS, stride = 1, kernel_size = 3)
 		self.batch_norm = nn.BatchNorm2d(num_features = NUMBER_OF_FILTERS)
 		self.res_blocks = []
@@ -74,6 +74,16 @@ class Net(nn.Module):
 			hl1 = self.res_blocks[i].forward(hl1)
 		return self.policy_head.forward(hl1), self.value_head.forward(hl1)
 
+	def predict(self, x):
+		with torch.no_grad():
+			x = torch.Tensor(np.expand_dims(x, axis = 0))
+			hl1 = F.relu(self.batch_norm(self.conv(x)))
+			for i in range(NUMBER_OF_RESIDUAL_BLOCKS):
+				hl1 = self.res_blocks[i].forward(hl1)
+			p,v = self.policy_head.forward(hl1), self.value_head.forward(hl1)
+			p = p[0].detach().numpy()
+			v = v.item()
+			return p,v
 class NNET():
 
 	def __init__(self):
@@ -98,7 +108,7 @@ class NNET():
 	# 	#list of  ([s0, s1, ...], pi, z)
 	# 	#gets converted to binary nd arrays as expected by nnet
 
-	def train(self, net, buff, steps = TRAINING_STEPS_PER_ITERATION):
+	def train(net, buff, steps = TRAINING_STEPS_PER_ITERATION):
 		
 		MSELoss = torch.nn.MSELoss()
 		optimizer = torch.optim.SGD(net.parameters(), lr = 0.01, momentum = 0.9, weight_decay = 10**-4)

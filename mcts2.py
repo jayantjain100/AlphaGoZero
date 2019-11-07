@@ -51,7 +51,6 @@ class MonteCarloTreeNode():
 			rooted_count = node_count**0.5
 			u = {a:((C_PUCT*self.prior[a]*rooted_count)/(1+self.visit_count[a])) for a in self.legal}
 			f = {a:(u[a] + self.q[a]) for a in self.legal}
-			# print (self.legal)
 			chosen_action = max(f, key=f.get)
 
 			child = self.children[chosen_action]
@@ -109,8 +108,8 @@ class MonteCarloTreeNode():
 				for_forward_pass.append(np.ones((1,BOARD_SIZE,BOARD_SIZE)))
 			else:
 				for_forward_pass.append(np.zeros((1,BOARD_SIZE,BOARD_SIZE)))
-			self.prior , self.v = network(np.concatenate(for_forward_pass, 0)) #PENDING
-			
+			self.prior , self.v = network.predict(np.concatenate(for_forward_pass, 0)) #PENDING
+			# print (self.prior.detach().numpy())
 			#initial_val = ????
 			# self.val_children = {a:initial_val for a in self.legal}
 
