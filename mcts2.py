@@ -1,3 +1,5 @@
+# mcst2.py
+# directly copying the environment instead of recreating from start
 import go_game
 import copy
 import numpy as np
@@ -9,7 +11,9 @@ HISTORY = 2
 #same board could have multiple parents - think ply4 ?? permutations of same moves #POTI
 # BOARD_SIZE = 13
 BOARD_SIZE = 5
-SIMULATIONS = 160
+# BOARD_SIZE = 3
+# SIMULATIONS = 160
+SIMULATIONS = 100
 C_PUCT = 1 #PENDING ??
 
 class MonteCarloTreeNode():
@@ -17,16 +21,17 @@ class MonteCarloTreeNode():
 	def sample(dist, temp):
 		pass
 
-	def __init__(self, parent, black, act, a_till_now):
+	def __init__(self, parent, black, act, env):
 		self.board = None
 		self.parent = parent
 		self.legal = None #POTI, remove faltu vars
 		self.children = {} #action indexed
 		self.leaf = True
-		if act is None:
-			self.actions_till_now = copy.deepcopy(a_till_now)
-		else:
-			self.actions_till_now = copy.deepcopy(a_till_now) + [act]
+		# self.actions_till_now = a_till_now
+		# if act is None:
+		# 	self.actions_till_now = copy.deepcopy(a_till_now)
+		# else:
+		# 	self.actions_till_now = copy.deepcopy(a_till_now) + [act]
 		self.prior = [] #P(s,a)
 		self.visit_count = {} #N(s,a)
 		self.w = {} #action indexed #W(s,a) 
@@ -34,7 +39,7 @@ class MonteCarloTreeNode():
 		self.u = {} #PUCT algo vala
 
 		self.black = black
-		
+		self.parent_env_ref = env
 		self.terminal = False #how to handle this?? #POTE #PENDING
 		self.a_to_reach_here = act
 
@@ -67,25 +72,34 @@ class MonteCarloTreeNode():
 		lis.reverse()
 		return lis
 
-	def expand(self, network, env):
+	def expand(self, network):
 		#run this on the found leaf
 		if not self.leaf:
 			raise Exception("NOT A LEAF")
 		else:
 			#keep on sampling
 			self.leaf = False
-			self.board = env.restart_and_simulate_till(self.actions_till_now) 
-			if (env.ended):
+			new_env = self.parent_env_ref.copy()
+			if self.a_to_reach_here is not None:
+				new_env.step(self.a_to_reach_here)
+			self.env = new_env
+			# self.board = env.restart_and_simulate_till(self.actions_till_now) 
+			self.board = self.env.board #??, ask rajas
+			if (self.env.ended):
 				self.leaf = True
 				# print('dummy escape')
 				# sys.exit(0)
-				return env.outcome
-			self.legal = env.fetch_legal(self.black)
+				return self.env.outcome
+			self.legal = self.env.fetch_legal(self.black)
 			if self.legal == []:
 				raise Exception("Empty")
 
 			# next_board = copy(env).step(a)[0] aisa kuch ayega next line mei
-			self.children = {a:MonteCarloTreeNode(self, not self.black, a , self.actions_till_now) for a in self.legal}
+			# for a in self.legal:
+			# 	new_env = self.env.copy()
+			# 	new_env.step(a)
+			# 	self.children[a] = MonteCarloTreeNode(self, not self.black, a , self.actions_till_now, env = new_env)	
+			self.children = {a:MonteCarloTreeNode(self, not self.black, a, env =self.env ) for a in self.legal} 
 			self.visit_count = {a:0 for a in self.legal} 
 			self.w = {a:0 for a in self.legal}
 			self.q = {a: (0) for a in self.legal} 
@@ -117,15 +131,17 @@ class MonteCarloTreeNode():
 			current = par
 			v = -v
 
-	def mcts(self, network, env, simulations = SIMULATIONS):
+	def mcts(self, network, simulations = SIMULATIONS):
 		for simnum in range(simulations):
 			# print ("simulation number", simnum)
 			chosen = self.search()
-			v = chosen.expand(network, env)
+			v = chosen.expand(network)
 			chosen.propagate_back(v)
 
 
 		return self.visit_count
+
+
 
 
 

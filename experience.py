@@ -1,4 +1,6 @@
 #implement a cyclic buffer
+import random
+import numpy as np
 BUFF_GAMES = 50
 AVG_GAME_LENGTH = 150
 BUFFER_SIZE = BUFF_GAMES * AVG_GAME_LENGTH
@@ -27,7 +29,11 @@ class Memory():
 		self.full = min(self.full + len(data), self.cap)
 
 	def sample(self, num_samples):
-		#PENDING
-		pass
+		indices = random.sample(list(range(self.full)), num_samples)
+		states = np.array([self.store[i][0] for i in indices])
+		pis = np.array([self.store[i][1][:-1] for i in indices])
+		zs = np.array([self.store[i][2] for i in indices])
+		zs = zs.reshape(-1,1)
+		return states, pis, zs
 
 
