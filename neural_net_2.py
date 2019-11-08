@@ -107,6 +107,10 @@ class NNET():
 			states, pis, zs = torch.Tensor(states), torch.Tensor(pis), torch.Tensor(zs)
 			p, v = net(states)
 			loss1 = - torch.sum(torch.mul(pis,torch.log(p)))
+			if loss1 != loss1:
+				print("LOOK HERE ------------------------------------------------------------------------------")
+				print("p is {} and pi is {}".format(p, pis))
+			
 			loss2 = MSELoss(zs,v)
 			loss = loss1 + loss2
 			print ("Epoch number: {} Policy Loss {} Value Loss {}".format(epoch_num, loss1, loss2))

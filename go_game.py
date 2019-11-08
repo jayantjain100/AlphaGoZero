@@ -10,6 +10,7 @@ import copy
 import goSim
 import random
 from global_constants import *
+import time
 
 class Environment():
 	def reset(self):
@@ -44,9 +45,19 @@ class Environment():
 
 		# if self.num_moves == MOVE_CAP:
 		# 	return self.board, 0, True
-
 		if show:
+			if a == BOARD_SIZE * BOARD_SIZE:
+				print("player passed")
+			if a == BOARD_SIZE *BOARD_SIZE + 1:
+				print("player resigned")
 			print (info)
+			if done:
+				print()
+				# print("{} the game_________________________ ".format(("WON" if r==1 else "LOST")))
+				val = self.inner_env.state.board.official_score + self.inner_env.komi
+				print("{} won the game and val was {}".format(("BLACK" if (3-self.current_color)==1 else "WHITE"), val))
+				print()
+				# time.selfeep(10)
 		return self.board, r, done
 		# a is a single dimensional number 	break into dim1 and dim2 using BOARD_DIMS[0] and BOARD_DIMS[1]
 		# returns board, 
@@ -187,7 +198,7 @@ class Environment():
 
 		return winner
 
-	def play_single_match_with_random(p1,my_black):
+	def play_single_match_with_random(p1,my_black, verbose = False):
 		game = Environment()
 
 		black = True
@@ -199,7 +210,7 @@ class Environment():
 				tree = mcts.MonteCarloTreeNode(None, black, None, env = game)
 				visit_counts = tree.mcts(p1)
 				a, _ = normalise_and_sample(visit_counts, 0)
-				_ , r , done = game.step(a, False)
+				_ , r , done = game.step(a, verbose)
 				if num_moves == MOVE_CAP:
 					done = True
 					val = game.inner_env.state.board.official_score + game.inner_env.komi
@@ -211,7 +222,7 @@ class Environment():
 						return winner
 			else:
 				a = random.choice(game.fetch_legal(black))
-				_ , r , done = game.step(a, False)
+				_ , r , done = game.step(a, verbose)
 				if num_moves == MOVE_CAP:
 					done = True
 					val = game.inner_env.state.board.official_score + game.inner_env.komi
@@ -267,12 +278,15 @@ class Environment():
 		print ("The number of draws is {} out of {}".format(draws,num_games))
 		return float(p1_wins + (draws*0.5)) / float(num_games)
 
-def compete_with_random(p1, num_games = NUM_GAMES_COMPETITION, verbose = False):
+def compete_with_random(p1, num_games = GAMES_AGAINST_RANDOM, verbose = False):
 	my_wins = 0
 	draws = 0
 	im_black = True
 	for i in range(num_games):
-		ret = Environment.play_single_match_with_random(p1, im_black)
+		
+		print('Games Played against random [%d%%]\r'%int((100*(i))/num_games), end="")
+
+		ret = Environment.play_single_match_with_random(p1, im_black, verbose)
 		if ((im_black and ret == 1) or (not im_black and ret == -1)):
 			my_wins += 1
 		elif (ret == 0):

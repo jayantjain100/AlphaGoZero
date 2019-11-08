@@ -15,32 +15,38 @@ from global_constants import *
 
 current_network = Net()
 buff = experience.Memory()
-iter_num = 0
+iter_num = -1
 while True:
 	print('iter num is {}'.format(iter_num))
 	iter_num += 1
 	if iter_num % FREQUENCY_AGAINST_RANDOM == 0:
 		print("Competing against random bot")
-		res = compete_with_random(current_network, GAMES_AGAINST_RANDOM)
+		res = compete_with_random(current_network, GAMES_AGAINST_RANDOM, False)
 		print("percentage wins are {}%".format(100*res))
 
+	# sys1.exit()
+	if iter_num % FREQUENCY_MODEL_SAVING == 0:
+		torch.save(current_network, "5_cross_5_iter_{}.pt".format(iter_num))
 	#generate data from self play
 	data = []
 	print("self-play")
+	sum_len = 0
 	for game in range(NUM_GAMES_PER_ITERATION):
 		# print ("Game1")
-		print('Games Played [%d%%]\r'%int((100*(game+1))/NUM_GAMES_PER_ITERATION), end="")
-		game_data = play_single_for_training(current_network, show = SHOW)
+		print('Games Played [%d%%]\r'%int((100*(game))/NUM_GAMES_PER_ITERATION), end="")
+		game_data = play_single_for_training(current_network, show = False)
 		# print ("Game1 ended")
 		#game_data is a list of (states, pi, z ) where a single state is a list of boards, list size = HISTORY
 		#POTI - memory wastage
 		game_data =  [NNET.stack(el,num) for num,el in enumerate(game_data)]
-
+		game_len = len(game_data)
+		sum_len += game_len
 		# sys1.exit()
 		data += game_data
 
 	print ()
 	print("self-play over")
+	print("average game length is {}".format(float(sum_len)/NUM_GAMES_PER_ITERATION))
 	#data is a list of ([s0, s1, ..., s0+hiostory], pi, z)
 	#convert the list of [s0, s1] to proper binary form as expected by the neural net
 	#convert here because same data may be used by neural net multiplre times

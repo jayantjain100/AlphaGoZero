@@ -87,7 +87,7 @@ class MonteCarloTreeNode():
 			if (self.depth >= 2*MOVE_CAP):
 				self.leaf = True
 				val = self.env.inner_env.state.board.official_score + self.env.inner_env.komi
-				if (val < 0 and black) or (val > 0 and not black):
+				if (val < 0 and self.black) or (val > 0 and not self.black):
 					return 1
 				else:
 					return -1
