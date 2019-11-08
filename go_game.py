@@ -82,70 +82,70 @@ class Environment():
 
 	# 	return self.board
 
-	def play_single_match(p1, p2, show = False):
-		#returns 1True if p1 won 
-		game = Environment()
+	# def play_single_match(p1, p2, show = False):
+	# 	#returns 1True if p1 won 
+	# 	game = Environment()
 
-		black = True
-		board = np.zeros((2, BOARD_DIMS[0], BOARD_DIMS[1]))
-		tree1 = mcts.MonteCarloTreeNode(None, black, None, env = game)
-		tree2 = mcts.MonteCarloTreeNode(None, black, None, env = game)
-		trees = {True: tree1, False:tree2}
-		players = {True:p1, False: p2}  #FIX_ASAP, POTE, LATER, PENDING
-		done = False
-		p1_wins = 0
-		temperature = 0 #greedy play throughout 
-		moves_till_now = []
-		num_moves = 0
-		while(not done):
-			num_moves += 1
-			# tree = trees[black]
-			network = players[black]
-			if black:
-				visit_counts = tree1.mcts(p1)
-			else:
-				visit_counts = tree2.mcts(p2)
+	# 	black = True
+	# 	board = np.zeros((2, BOARD_DIMS[0], BOARD_DIMS[1]))
+	# 	tree1 = mcts.MonteCarloTreeNode(None, black, None, env = game)
+	# 	tree2 = mcts.MonteCarloTreeNode(None, black, None, env = game)
+	# 	trees = {True: tree1, False:tree2}
+	# 	players = {True:p1, False: p2}  #FIX_ASAP, POTE, LATER, PENDING
+	# 	done = False
+	# 	p1_wins = 0
+	# 	temperature = 0 #greedy play throughout 
+	# 	moves_till_now = []
+	# 	num_moves = 0
+	# 	while(not done):
+	# 		num_moves += 1
+	# 		# tree = trees[black]
+	# 		network = players[black]
+	# 		if black:
+	# 			visit_counts = tree1.mcts(p1)
+	# 		else:
+	# 			visit_counts = tree2.mcts(p2)
 
-			# game.restart_and_simulate_till(moves_till_now)
-			# print(f" visit counts are {visit_counts}")
-			a, _ = normalise_and_sample(visit_counts, temperature)
-			# print(type(a), a)
-			moves_till_now.append(a)
-			_ , r , done = game.step(a, False)
+	# 		# game.restart_and_simulate_till(moves_till_now)
+	# 		# print(f" visit counts are {visit_counts}")
+	# 		a, _ = normalise_and_sample(visit_counts, temperature)
+	# 		# print(type(a), a)
+	# 		moves_till_now.append(a)
+	# 		_ , r , done = game.step(a, False)
 
-			if num_moves == MOVE_CAP :
-				done = True #POTE
+	# 		if num_moves == MOVE_CAP :
+	# 			done = True #POTE
 
-			# tree1 = MonteCarloTreeNode()
-			# for t in [tree1, tree2]:
-				# if a not in t.children:
-					#create karo abhi
-				# t = mcts.MonteCarloTreeNode(None, not t.black, a , t.actions_till_now) #POTE
-				# else:
-					# t = t.children[a]
+	# 		# tree1 = MonteCarloTreeNode()
+	# 		# for t in [tree1, tree2]:
+	# 			# if a not in t.children:
+	# 				#create karo abhi
+	# 			# t = mcts.MonteCarloTreeNode(None, not t.black, a , t.actions_till_now) #POTE
+	# 			# else:
+	# 				# t = t.children[a]
 			
-			# tree1.parent = None
-			# tree2.parent = None
-			# t = tree1
-			if a not in tree1.children:
-				tree1 = mcts.MonteCarloTreeNode(None, not tree1.black, a , env = game) #POTI
-			else:
-				tree1 = tree1.children[a]
-			# t = tree2
-			if a not in tree2.children:
-				tree2 = mcts.MonteCarloTreeNode(None, not tree2.black, a , env = game)
-			else:
-				tree2 = tree2.children[a]
+	# 		# tree1.parent = None
+	# 		# tree2.parent = None
+	# 		# t = tree1
+	# 		if a not in tree1.children:
+	# 			tree1 = mcts.MonteCarloTreeNode(None, not tree1.black, a , env = game) #POTI
+	# 		else:
+	# 			tree1 = tree1.children[a]
+	# 		# t = tree2
+	# 		if a not in tree2.children:
+	# 			tree2 = mcts.MonteCarloTreeNode(None, not tree2.black, a , env = game)
+	# 		else:
+	# 			tree2 = tree2.children[a]
 
-			action = a
-			# if num_moves == 2:
-			# 	sys1.exit() #zabardasti error
+	# 		action = a
+	# 		# if num_moves == 2:
+	# 		# 	sys1.exit() #zabardasti error
 
-			black = not black
+	# 		black = not black
 
-		#ending mei if black is True then that means that black ki turn hai par game already over hai
-		# so that means white won
-		return not black
+	# 	#ending mei if black is True then that means that black ki turn hai par game already over hai
+	# 	# so that means white won
+	# 	return not black
 
 	def play_single_match_2(p1, p2, show = False):
 		#returns 1True if p1 won 
@@ -164,17 +164,28 @@ class Environment():
 				visit_counts = tree.mcts(p2)
 
 			a, _ = normalise_and_sample(visit_counts, 0)
-			_ , r , done = game.step(a, False)
+			_ , r , done = game.step(a, show)
 
 			if num_moves == MOVE_CAP:
 				done = True
+				#decide winner
+				val = game.inner_env.state.board.official_score + game.inner_env.komi
+				if (val > 0):
+					winner = -1
+					return winner
+				else:
+					winner = 1
+					return winner
+
 			black = not black
 
 		black = not black
 		if (black):
-			return r
+			winner = r
 		else:
-			return -r
+			winner = -r	
+
+		return winner
 
 	def play_single_match_with_random(p1,my_black):
 		game = Environment()
@@ -191,18 +202,34 @@ class Environment():
 				_ , r , done = game.step(a, False)
 				if num_moves == MOVE_CAP:
 					done = True
+					val = game.inner_env.state.board.official_score + game.inner_env.komi
+					if (val > 0):
+						winner = -1
+						return winner
+					else:
+						winner = 1
+						return winner
 			else:
 				a = random.choice(game.fetch_legal(black))
 				_ , r , done = game.step(a, False)
 				if num_moves == MOVE_CAP:
 					done = True
+					val = game.inner_env.state.board.official_score + game.inner_env.komi
+					if (val > 0):
+						winner = -1
+						return winner
+					else:
+						winner = 1
+						return winner
 			black = not black
 
 		black = not black
 		if (black):
-			return r
+			winner = r
 		else:
-			return -r	
+			winner = -r	
+
+		return winner
 
 	def compete(p1, p2, num_games = NUM_GAMES_COMPETITION, verbose = False):
 		#returns win percentage of p1
@@ -321,6 +348,11 @@ def play_single_for_training(network, show = False):
 		# r , s_dash, done = game.step(a)
 		if num_moves == MOVE_CAP :
 			done = True
+			val = game.inner_env.state.board.official_score + game.inner_env.komi
+			if (val < 0 and black) or (val > 0 and not black):
+				r = 1
+			else:
+				r = -1
 		#update history
 		# history[:(HISTORY - 1)] = history[0:HISTORY]
 		data.append((copy.deepcopy(history), true_pi) ) #check deepcopy, POTE

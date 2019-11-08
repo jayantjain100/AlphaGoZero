@@ -17,10 +17,11 @@ current_network = Net()
 buff = experience.Memory()
 iter_num = 0
 while True:
+	print('iter num is {}'.format(iter_num))
 	iter_num += 1
-	if iter_num % 50 == 0:
+	if iter_num % FREQUENCY_AGAINST_RANDOM == 0:
 		print("Competing against random bot")
-		res = compete_with_random(current_network, 50)
+		res = compete_with_random(current_network, GAMES_AGAINST_RANDOM)
 		print("percentage wins are {}%".format(100*res))
 
 	#generate data from self play
