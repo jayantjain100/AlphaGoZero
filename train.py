@@ -12,6 +12,7 @@ import experience
 import copy
 import numpy as np
 from global_constants import *
+from multiprocessing import Pool
 
 current_network = Net()
 buff = experience.Memory()
@@ -34,15 +35,19 @@ while True:
 	for game in range(NUM_GAMES_PER_ITERATION):
 		# print ("Game1")
 		print('Games Played [%d%%]\r'%int((100*(game))/NUM_GAMES_PER_ITERATION), end="")
-		game_data = play_single_for_training(current_network, show = False)
+		# game_data = play_single_for_training(current_network, show = False)
+		p = Pool(processes = PROCESSES)
+		game_data_lists = p.map(play_single_for_training, [current_network for i in range(PROCESSES)])
+		p.close()
 		# print ("Game1 ended")
 		#game_data is a list of (states, pi, z ) where a single state is a list of boards, list size = HISTORY
 		#POTI - memory wastage
-		game_data =  [NNET.stack(el,num) for num,el in enumerate(game_data)]
-		game_len = len(game_data)
-		sum_len += game_len
+		for game_data in game_data_lists:
+			game_data =  [NNET.stack(el,num) for num,el in enumerate(game_data)]
+			game_len = len(game_data)
+			sum_len += game_len
+			data += game_data
 		# sys1.exit()
-		data += game_data
 
 	print ()
 	print("self-play over")

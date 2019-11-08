@@ -29,6 +29,7 @@ BUFFER_SIZE = BUFF_GAMES * AVG_GAME_LENGTH
 
 C_PUCT = 1
 
+PROCESSES = 16
 #PENDING, POTI - rotations before passing to nnet, exploiting symmetry of the game
 #PENDING - v_resign??
 
