@@ -26,7 +26,7 @@ while True:
 
 	# sys1.exit()
 	if iter_num % FREQUENCY_MODEL_SAVING == 0:
-		torch.save(current_network, "5_cross_5_iter_{}.pt".format(iter_num))
+		torch.save(current_network, "models/5_cross_5_iter_{}.pt".format(iter_num))
 	#generate data from self play
 	data = []
 	print("self-play")

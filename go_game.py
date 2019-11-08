@@ -46,6 +46,7 @@ class Environment():
 		# if self.num_moves == MOVE_CAP:
 		# 	return self.board, 0, True
 		if show:
+			time.sleep(2)
 			if a == BOARD_SIZE * BOARD_SIZE:
 				print("player passed")
 			if a == BOARD_SIZE *BOARD_SIZE + 1:
@@ -57,7 +58,6 @@ class Environment():
 				val = self.inner_env.state.board.official_score + self.inner_env.komi
 				print("{} won the game and val was {}".format(("BLACK" if (3-self.current_color)==1 else "WHITE"), val))
 				print()
-				# time.selfeep(10)
 		return self.board, r, done
 		# a is a single dimensional number 	break into dim1 and dim2 using BOARD_DIMS[0] and BOARD_DIMS[1]
 		# returns board, 
@@ -209,7 +209,8 @@ class Environment():
 			if (black == my_black):
 				tree = mcts.MonteCarloTreeNode(None, black, None, env = game)
 				visit_counts = tree.mcts(p1)
-				a, _ = normalise_and_sample(visit_counts, 0)
+				a, pi = normalise_and_sample(visit_counts, 0)
+				# print(visit_counts, pi, tree.prior)
 				_ , r , done = game.step(a, verbose)
 				if num_moves == MOVE_CAP:
 					done = True
