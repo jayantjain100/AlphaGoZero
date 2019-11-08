@@ -41,7 +41,7 @@ class MonteCarloTreeNode():
 		if self.leaf:
 			return self
 		else:
-			node_count = sum(self.visit_count.values())
+			node_count = sum(self.visit_count.values()) + 1
 			rooted_count = node_count**0.5
 			u = {a:((C_PUCT*self.prior[a]*rooted_count)/(1+self.visit_count[a])) for a in self.legal}
 			f = {a:(u[a] + self.q[a]) for a in self.legal}
