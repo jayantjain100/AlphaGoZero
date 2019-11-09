@@ -5,7 +5,7 @@ import copy
 import numpy as np
 from global_constants import *
 # import ipdb
-
+num_hits = 0
 class MonteCarloTreeNode():
 
 	def sample(dist, temp):
@@ -80,6 +80,8 @@ class MonteCarloTreeNode():
 			self.board = self.env.board #??, ask rajas
 			if (self.env.ended):
 				self.leaf = True
+				global num_hits
+				num_hits += 1
 				# print('dummy escape')
 				# sys.exit(0)
 				return self.env.outcome
@@ -88,9 +90,9 @@ class MonteCarloTreeNode():
 				self.leaf = True
 				val = self.env.inner_env.state.board.official_score + self.env.inner_env.komi
 				if (val < 0 and self.black) or (val > 0 and not self.black):
-					return 1
-				else:
 					return -1
+				else:
+					return 1
 
 			self.legal = self.env.fetch_legal(self.black)
 			if self.legal == []:
@@ -119,7 +121,7 @@ class MonteCarloTreeNode():
 
 			# a = sample_from_children()
 
-			return self.v
+			return -self.v
 
 	def propagate_back(self, v):
 		current = self
@@ -134,12 +136,14 @@ class MonteCarloTreeNode():
 			v = -v
 
 	def mcts(self, network, simulations = SIMULATIONS):
+		global num_hits
+		num_hits = 0
 		for simnum in range(simulations):
 			# print ("simulation number", simnum)
 			chosen = self.search()
 			v = chosen.expand(network)
 			chosen.propagate_back(v)
-
+		print ("The number of hits is {}".format(num_hits))
 
 		return self.visit_count
 

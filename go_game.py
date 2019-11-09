@@ -285,7 +285,7 @@ def compete_with_random(p1, num_games = GAMES_AGAINST_RANDOM, verbose = False):
 	im_black = True
 	for i in range(num_games):
 		
-		print('Games Played against random [%d%%]\r'%int((100*(i))/num_games), end="")
+		# print('Games Played against random [%d%%]\r'%int((100*(i))/num_games), end="")
 
 		ret = Environment.play_single_match_with_random(p1, im_black, verbose)
 		if ((im_black and ret == 1) or (not im_black and ret == -1)):
@@ -293,7 +293,7 @@ def compete_with_random(p1, num_games = GAMES_AGAINST_RANDOM, verbose = False):
 		elif (ret == 0):
 			draws += 1
 		im_black = not im_black
-	print ("The number of draws is {} out of {}".format(draws,num_games))		
+	# print ("The number of draws is {} out of {}".format(draws,num_games))		
 	return float(my_wins + (draws*0.5)) / float(num_games)
 
 def sample(prob_dist):

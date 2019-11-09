@@ -22,8 +22,10 @@ while True:
 	iter_num += 1
 	if iter_num % FREQUENCY_AGAINST_RANDOM == 0:
 		print("Competing against random bot")
-		res = compete_with_random(current_network, GAMES_AGAINST_RANDOM, False)
-		print("percentage wins are {}%".format(100*res))
+		p = Pool(processes = PROCESSES)
+		res = p.starmap(compete_with_random, [(current_network, 1) for i in range(GAMES_AGAINST_RANDOM)])
+		# res = compete_with_random(current_network, GAMES_AGAINST_RANDOM, False)
+		print("percentage wins are {}%".format(100*np.mean(np.array(res))))
 
 	# sys1.exit()
 	if iter_num % FREQUENCY_MODEL_SAVING == 0:
@@ -34,7 +36,7 @@ while True:
 	sum_len = 0
 	for game in range(int(NUM_GAMES_PER_ITERATION/PROCESSES)):
 		# print ("Game1")
-		print('Games Played [%d%%]\r'%int((100*(game))/NUM_GAMES_PER_ITERATION), end="")
+		print('Games Played [%d%%]\r'%int((100*(game*PROCESSES))/NUM_GAMES_PER_ITERATION), end="")
 		# game_data = play_single_for_training(current_network, show = False)
 		p = Pool(processes = PROCESSES)
 		game_data_lists = p.map(play_single_for_training, [current_network for i in range(PROCESSES)])
