@@ -34,27 +34,27 @@ while True:
 	data = []
 	print("self-play")
 	sum_len = 0
-	for game in range(int(NUM_GAMES_PER_ITERATION/PROCESSES)):
+	# for game in range(int(NUM_GAMES_PER_ITERATION/PROCESSES)):
 		# print ("Game1")
-		print('Games Played [%d%%]\r'%int((100*(game*PROCESSES))/NUM_GAMES_PER_ITERATION), end="")
+		# print('Games Played [%d%%]\r'%int((100*(game*PROCESSES))/NUM_GAMES_PER_ITERATION), end="")
 		# game_data = play_single_for_training(current_network, show = False)
-		p = Pool(processes = PROCESSES)
-		game_data_lists = p.map(play_single_for_training, [current_network for i in range(PROCESSES)])
-		p.close()
+	p = Pool(processes = PROCESSES)
+	game_data_lists = p.map(play_single_for_training, [current_network for i in range(NUM_GAMES_PER_ITERATION)])
+	p.close()
 		# print ("Done")
 		# print ("Game1 ended")
 		#game_data is a list of (states, pi, z ) where a single state is a list of boards, list size = HISTORY
 		#POTI - memory wastage
-		for game_data in game_data_lists:
-			game_data =  [NNET.stack(el,num) for num,el in enumerate(game_data)]
-			game_len = len(game_data)
-			sum_len += game_len
-			data += game_data
-		# sys1.exit()
+	for game_data in game_data_lists:
+		game_data =  [NNET.stack(el,num) for num,el in enumerate(game_data)]
+		game_len = len(game_data)
+		sum_len += game_len
+		data += game_data
 
 	print ()
 	print("self-play over")
-	print("average game length is {}".format(float(sum_len)/NUM_GAMES_PER_ITERATION))
+	# print (game_data)
+	print("average gamex length is {}".format(float(sum_len)/NUM_GAMES_PER_ITERATION))
 	#data is a list of ([s0, s1, ..., s0+hiostory], pi, z)
 	#convert the list of [s0, s1] to proper binary form as expected by the neural net
 	#convert here because same data may be used by neural net multiplre times

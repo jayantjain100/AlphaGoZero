@@ -4,8 +4,17 @@ import go_game
 import copy
 import numpy as np
 from global_constants import *
+import random
+import sys
+import os
+import time
+sys.path.append(os.path.abspath("../alphago_zero_sim"))
+import goSim
 # import ipdb
 num_hits = 0
+
+board_size = 13
+
 class MonteCarloTreeNode():
 
 	def sample(dist, temp):
@@ -80,8 +89,8 @@ class MonteCarloTreeNode():
 			self.board = self.env.board #??, ask rajas
 			if (self.env.ended):
 				self.leaf = True
-				global num_hits
-				num_hits += 1
+				# global num_hits
+				# num_hits += 1
 				# print('dummy escape')
 				# sys.exit(0)
 				return self.env.outcome
@@ -95,6 +104,7 @@ class MonteCarloTreeNode():
 					return 1
 
 			self.legal = self.env.fetch_legal(self.black)
+			# print (self.legal)
 			if self.legal == []:
 				raise Exception("Empty")
 
@@ -113,7 +123,9 @@ class MonteCarloTreeNode():
 				for_forward_pass.append(np.ones((1,BOARD_SIZE,BOARD_SIZE)))
 			else:
 				for_forward_pass.append(np.zeros((1,BOARD_SIZE,BOARD_SIZE)))
-			self.prior , self.v = network.predict(np.concatenate(for_forward_pass, 0)) #PENDING
+			# self.prior , self.v = network.predict(np.concatenate(for_forward_pass, 0)) #PENDING
+			self.prior = [1/len(self.legal) for i in range(BOARD_SIZE*BOARD_SIZE+1)]
+			self.v = self.rollout_till_end(self.env)
 			# print (self.prior.detach().numpy())
 			#initial_val = ????
 			# self.val_children = {a:initial_val for a in self.legal}
@@ -135,15 +147,33 @@ class MonteCarloTreeNode():
 			current = par
 			v = -v
 
+	def rollout_till_end(self, new_env):
+		rollout_env = new_env.copy()
+		done = False
+		me = True
+		while (not done):
+			leg_coord = rollout_env.inner_env.state.board.get_legal_coords(rollout_env.current_color)
+			a = goSim._coord_to_action(rollout_env.inner_env.state.board , random.choice(leg_coord))
+			_, r, done = rollout_env.step(a)
+			me = not me
+		me = not me
+		if (me):
+			return r
+		else:
+			return -r
+
 	def mcts(self, network, simulations = SIMULATIONS):
-		global num_hits
-		num_hits = 0
+		# global num_hits
+		# num_hits = 0
+		start = time.time()
 		for simnum in range(simulations):
 			# print ("simulation number", simnum)
 			chosen = self.search()
 			v = chosen.expand(network)
 			chosen.propagate_back(v)
-		print ("The number of hits is {}".format(num_hits))
+		end = time.time()
+		print (end - start)
+		# print ("The number of hits is {}".format(num_hits))
 
 		return self.visit_count
 

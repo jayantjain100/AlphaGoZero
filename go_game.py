@@ -2,7 +2,7 @@
 import numpy as np
 from neural_net_2 import *
 # import mcts as mcts
-import mcts2 as mcts
+import vanilla_mcts as mcts
 import sys
 import os
 sys.path.append(os.path.abspath("../alphago_zero_sim"))
@@ -46,7 +46,6 @@ class Environment():
 		# if self.num_moves == MOVE_CAP:
 		# 	return self.board, 0, True
 		if show:
-			time.sleep(2)
 			if a == BOARD_SIZE * BOARD_SIZE:
 				print("player passed")
 			if a == BOARD_SIZE *BOARD_SIZE + 1:
@@ -56,7 +55,7 @@ class Environment():
 				print()
 				# print("{} the game_________________________ ".format(("WON" if r==1 else "LOST")))
 				val = self.inner_env.state.board.official_score + self.inner_env.komi
-				print("{} won the game and val was {}".format(("BLACK" if (3-self.current_color)==1 else "WHITE"), val))
+				print("{} won the game and val was {}".format(("BLACK" if val < 0 else "WHITE"), val))
 				print()
 		return self.board, r, done
 		# a is a single dimensional number 	break into dim1 and dim2 using BOARD_DIMS[0] and BOARD_DIMS[1]
@@ -75,88 +74,9 @@ class Environment():
 
 
 	def fetch_legal(self, player):
-		#POTE, PENDING history bhi chahiye hoga yahan??
-		#returns a list of legal actions
-		actions = []
-		empties = np.ones(BOARD_DIMS) - (self.board[0] + self.board[1])
-		tmp = np.stack([self.board[0],self.board[1], empties], 0)
-		for i in range(ACTIONS-1):
-			if (self.inner_env.is_legal_action(tmp, i, 1 if player else 2)):
-				actions.append(i)
-		return actions
-
-	# def restart_and_simulate_till(self, list_actions):
-	# 	self.reset()
-	# 	# print (list_actions, self.current_color)
-	# 	for a in list_actions:
-	# 		self.board, _, _ = self.step(a)
-
-	# 	return self.board
-
-	# def play_single_match(p1, p2, show = False):
-	# 	#returns 1True if p1 won 
-	# 	game = Environment()
-
-	# 	black = True
-	# 	board = np.zeros((2, BOARD_DIMS[0], BOARD_DIMS[1]))
-	# 	tree1 = mcts.MonteCarloTreeNode(None, black, None, env = game)
-	# 	tree2 = mcts.MonteCarloTreeNode(None, black, None, env = game)
-	# 	trees = {True: tree1, False:tree2}
-	# 	players = {True:p1, False: p2}  #FIX_ASAP, POTE, LATER, PENDING
-	# 	done = False
-	# 	p1_wins = 0
-	# 	temperature = 0 #greedy play throughout 
-	# 	moves_till_now = []
-	# 	num_moves = 0
-	# 	while(not done):
-	# 		num_moves += 1
-	# 		# tree = trees[black]
-	# 		network = players[black]
-	# 		if black:
-	# 			visit_counts = tree1.mcts(p1)
-	# 		else:
-	# 			visit_counts = tree2.mcts(p2)
-
-	# 		# game.restart_and_simulate_till(moves_till_now)
-	# 		# print(f" visit counts are {visit_counts}")
-	# 		a, _ = normalise_and_sample(visit_counts, temperature)
-	# 		# print(type(a), a)
-	# 		moves_till_now.append(a)
-	# 		_ , r , done = game.step(a, False)
-
-	# 		if num_moves == MOVE_CAP :
-	# 			done = True #POTE
-
-	# 		# tree1 = MonteCarloTreeNode()
-	# 		# for t in [tree1, tree2]:
-	# 			# if a not in t.children:
-	# 				#create karo abhi
-	# 			# t = mcts.MonteCarloTreeNode(None, not t.black, a , t.actions_till_now) #POTE
-	# 			# else:
-	# 				# t = t.children[a]
-			
-	# 		# tree1.parent = None
-	# 		# tree2.parent = None
-	# 		# t = tree1
-	# 		if a not in tree1.children:
-	# 			tree1 = mcts.MonteCarloTreeNode(None, not tree1.black, a , env = game) #POTI
-	# 		else:
-	# 			tree1 = tree1.children[a]
-	# 		# t = tree2
-	# 		if a not in tree2.children:
-	# 			tree2 = mcts.MonteCarloTreeNode(None, not tree2.black, a , env = game)
-	# 		else:
-	# 			tree2 = tree2.children[a]
-
-	# 		action = a
-	# 		# if num_moves == 2:
-	# 		# 	sys1.exit() #zabardasti error
-
-	# 		black = not black
-
-	# 	#ending mei if black is True then that means that black ki turn hai par game already over hai
-	# 	# so that means white won
-	# 	return not black
+		l = self.inner_env.state.board.get_legal_coords(1 if player else 2)
+		l = [goSim._coord_to_action(self.inner_env.state.board , i) for i in l]
+		return l
 
 	def play_single_match_2(p1, p2, show = False):
 		#returns 1True if p1 won 
