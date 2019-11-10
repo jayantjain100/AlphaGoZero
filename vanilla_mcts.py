@@ -8,6 +8,7 @@ import time
 sys.path.append(os.path.abspath("../alphago_zero_sim"))
 import goSim
 from global_constants import *
+import heapq
 
 # C_PUCT = 1
 # MOVE_CAP = 3*13*13
@@ -32,15 +33,16 @@ class MonteCarloTreeNode():
 		if self.leaf:
 			return self
 		else:
-			node_count = sum(self.visit_count.values()) + 1
-			rooted_count = node_count**0.5
+			# node_count = sum(self.visit_count.values()) + 1
+			# rooted_count = node_count**0.5
 			uniform_prior = 1.0/len(self.legal)
-			max_val = -1
-			for a in self.legal:
-				tmp = ((C_PUCT*(uniform_prior)*rooted_count)/(1+self.visit_count[a])) + self.q[a]
-				if (tmp > max_val):
-					max_val = tmp
-					chosen_action = a
+			# max_val = -1
+			# for a in self.legal:
+			# 	tmp = ((C_PUCT*(uniform_prior)*rooted_count)/(1+self.visit_count[a])) + self.q[a]
+			# 	if (tmp > max_val):
+			# 		max_val = tmp
+			# 		chosen_action = a
+			chosen_action = self.heap[0][1]
 			child = self.children[chosen_action]
 			return child.search()
 
@@ -75,6 +77,8 @@ class MonteCarloTreeNode():
 			self.visit_count = {a:0 for a in self.legal}
 			self.w = {a:0 for a in self.legal}
 			self.q = {a:0 for a in self.legal}
+			self.heap = [(-1.0/len(self.legal),a) for a in self.legal]
+			heapq.heapify(self.heap)
 
 			self.v = self.rollout_till_end()
 			return -self.v
@@ -86,6 +90,11 @@ class MonteCarloTreeNode():
 			current.parent.visit_count[a] += 1
 			current.parent.w[a] += v
 			current.parent.q[a] = current.parent.w[a]/(current.parent.visit_count[a] + 1.)
+			f_old, a_old = heapq.heappop(current.parent.heap)
+			uniform_prior = 1.0/len(current.parent.legal)
+			f_new = ((C_PUCT*(uniform_prior))/(1+current.parent.visit_count[a_old])) + current.parent.q[a_old]
+			heapq.heappush(current.parent.heap , (-f_new, a))
+			assert a == a_old
 			current = current.parent
 			v = -v
 
